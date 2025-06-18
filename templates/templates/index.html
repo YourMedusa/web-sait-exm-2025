@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Электронная библиотека{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 text-white">
+                <i class="fas fa-fire text-warning"></i> Популярные книги
+            </h1>
+            {% if current_user and current_user.role_name == 'administrator' %}
+                <a href="{{ url_for('add_book') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Добавить книгу
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Популярные книги -->
+        {% if popular_books %}
+            <div class="popular-books fade-in">
+                <div class="row">
+                    {% for book in popular_books %}
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <div class="card h-100">
+                                {% if book.cover_filename %}
+                                    <img src="{{ url_for('static', filename='uploads/' + book.cover_filename) }}" 
+                                         class="card-img-top" alt="{{ book.title }}">
+                                {% else %}
+                                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-book fa-3x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title text-truncate-2">{{ book.title }}</h5>
+                                    
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <strong>Автор:</strong> {{ book.author|truncate(25) }}<br>
+                                            <strong>Год:</strong> {{ book.publication_year }}<br>
+                                            <strong>Страниц:</strong> {{ book.page_count }}
+                                        </small>
+                                    </div>
+                                    
+                                    <!-- Рейтинг -->
+                                    <div class="mb-2">
+                                        {% if book.avg_rating and book.avg_rating > 0 %}
+                                            <div class="text-warning">
+                                                {% for i in range(1, 6) %}
+                                                    {% if i <= book.avg_rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="text-muted ms-1">({{ "%.1f"|format(book.avg_rating) }})</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Нет оценок</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Кнопки действий -->
+                                    <div class="mt-auto">
+                                        <div class="d-grid gap-2">
+                                            <a href="{{ url_for('view_book', book_id=book.id) }}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i> Просмотр
+                                            </a>
+                                            
+                                            {% if current_user and current_user.role_name == 'administrator' %}
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-outline-warning btn-sm">
+                                                        <i class="fas fa-edit"></i> Редактировать
+                                                    </a>
+                                                    <form method="POST" action="{{ url_for('delete_book', book_id=book.id) }}" style="display:inline;" onsubmit="return confirm('Вы уверены, что хотите удалить книгу {{ book.title }}?');">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="fas fa-trash"></i> Удалить
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                <h3 class="text-muted">Книги не найдены</h3>
+                <p class="text-muted">В библиотеке пока нет популярных книг.</p>
+                {% if current_user and current_user.role_name == 'administrator' %}
+                    <a href="{{ url_for('add_book') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Добавить первую книгу
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
